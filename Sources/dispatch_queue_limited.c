@@ -121,7 +121,7 @@ extern void objc_autoreleasePoolPop(void *ctxt);
 #define DQL_RESUME_MSG_ID 7575
 #endif
 
-#if DISPATCH_QUEUE_LIMITED_BLOCKINGS
+#if DISPATCH_QUEUE_LIMITED_AWAIT_BLOCKING
 extern mach_port_t mig_get_reply_port(void);
 extern void mig_put_reply_port(mach_port_t reply_port);
 #define _dispatch_queue_limited_handle_await(x) \
@@ -415,10 +415,10 @@ void dispatch_queue_limited_drain(dispatch_queue_limited_t dq) {
         dql_work_item_free(head);
         
         if (shouldAwait) {
-            // If DISPATCH_QUEUE_LIMITED_BLOCKINGS:
+            // If DISPATCH_QUEUE_LIMITED_AWAIT_BLOCKING:
             // Calls _dispatch_queue_limited_hold_for_await,
             // blocking until _dispatch_queue_limited_unblock_await.
-            // If !DISPATCH_QUEUE_LIMITED_BLOCKINGS:
+            // If !DISPATCH_QUEUE_LIMITED_AWAIT_BLOCKING:
             // Calls 'return', which skips call to
             // dispatch_queue_limited_dec_count and returns
             // this thread to the backing queue.
@@ -444,7 +444,7 @@ void _dispatch_queue_limited_reenqueue_drain(dispatch_queue_limited_t dq) {
 }
 
 void dispatch_queue_limited_dequeue_await(dispatch_queue_limited_t dq) {
-    // If compiled with DISPATCH_QUEUE_LIMITED_BLOCKINGS, calls _dispatch_queue_limited_unblock_await.
+    // If compiled with DISPATCH_QUEUE_LIMITED_AWAIT_BLOCKING, calls _dispatch_queue_limited_unblock_await.
     // Otherwise calls _dispatch_queue_limited_reenqueue_drain
     dispatch_queue_limited_dec_await(dq);
     dispatch_queue_limited_handle_resume(dq);
