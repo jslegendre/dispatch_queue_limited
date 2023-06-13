@@ -1,0 +1,4 @@
+module DispatchQueueLimited [extern_c] {
+    header "dispatch_queue_limited.h"
+    export *
+}
