@@ -4,6 +4,10 @@ A thread-limited dispatch queue with no locks or semaphores
 ## Summary
 dispatch_queue_limited functions by wrapping a concurrent dispatch_queue_t in a convenient and thread-safe management layer.  With an efficient implementation relying solely on atomic operations, dispatch_queue_limited ensures optimal thread-safety without the need for locks or semaphores. This library is used internally by IconChamp to ensuring the UI accurately reflects the progress of many asynchronous XPC calls
 
+https://github.com/jslegendre/dispatch_queue_limited/assets/20951585/073fdb83-7efa-470d-b4f4-f25854cd1b43
+
+https://github.com/jslegendre/dispatch_queue_limited/assets/20951585/e0597918-ec4b-4818-bd42-d6c2038ee760
+
 ## API
 ```
 /*!
