@@ -138,7 +138,7 @@ extern void mig_put_reply_port(mach_port_t reply_port);
 
 static const void * const dql_queue_key = (const void*)&dql_queue_key;
 
-#include "dispatch_queue_limited.h"
+#include "include/dispatch_queue_limited.h"
 
 // Unused, here for reference
 struct Block_layout {
@@ -291,7 +291,7 @@ void dispatch_queue_limited_release(dispatch_queue_limited_t dq) {
 
 static inline __attribute__((always_inline))
 void dispatch_queue_limited_dec_await(dispatch_queue_limited_t dq) {
-    uint32_t r = os_atomic_sub(&dq->await_count, 1, relaxed);
+    int32_t r = os_atomic_sub(&dq->await_count, 1, relaxed);
     assert(r >= 0);
 }
 
@@ -307,7 +307,7 @@ uint32_t dispatch_queue_limited_thread_count(dispatch_queue_limited_t dq) {
 
 static inline __attribute__((always_inline))
 void dispatch_queue_limited_dec_count(dispatch_queue_limited_t dq) {
-    uint32_t r = os_atomic_sub(&dq->thread_count, 1, relaxed);
+    int32_t r = os_atomic_sub(&dq->thread_count, 1, relaxed);
     assert(r >= 0);
     _dispatch_queue_limited_release(dq);
 }
@@ -315,13 +315,13 @@ void dispatch_queue_limited_dec_count(dispatch_queue_limited_t dq) {
 static inline __attribute__((used,always_inline))
 void dispatch_queue_limited_inc_count(dispatch_queue_limited_t dq) {
     _dispatch_queue_limited_retain(dq);
-    uint32_t r = os_atomic_add(&dq->thread_count, 1, relaxed);
+    int32_t r = os_atomic_add(&dq->thread_count, 1, relaxed);
     assert(r <= dq->limit);
 }
 
 static inline __attribute__((always_inline))
 bool dispatch_queue_limited_maybe_inc_count(dispatch_queue_limited_t dq) {
-    uint32_t old_count, new_count = 0;
+    int32_t old_count, new_count = 0;
     (void)os_atomic_rmw_loop(&dq->thread_count, old_count, new_count, relaxed, {
         if (old_count >= dq->limit) {
             os_atomic_rmw_loop_give_up(return false);
