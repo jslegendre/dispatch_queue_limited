@@ -401,8 +401,6 @@ void _dispatch_queue_limited_unblock_await(dispatch_queue_limited_t dq) {
 
 static
 void dispatch_queue_limited_drain(dispatch_queue_limited_t dq) {
-    dispatch_assert_queue(dq->queue);
-    
     if (unlikely(!dq->dql_tail)) {
         return dispatch_queue_limited_dec_count(dq);
     }
