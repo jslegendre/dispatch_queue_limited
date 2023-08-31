@@ -301,7 +301,7 @@ void dispatch_queue_limited_inc_await(dispatch_queue_limited_t dq) {
 }
 
 static inline __attribute__((used))
-uint32_t dispatch_queue_limited_thread_count(dispatch_queue_limited_t dq) {
+int32_t dispatch_queue_limited_thread_count(dispatch_queue_limited_t dq) {
     return os_atomic_load(&dq->thread_count, relaxed);
 }
 
@@ -466,14 +466,24 @@ void _dispatch_queue_limited_maybe_invoke(dispatch_queue_limited_t dq, dql_work_
     }
 }
 
-void dispatch_queue_limited_enqueue_await_f(dispatch_queue_limited_t dq, void *_Nullable context, dispatch_function_t work) {
+static inline __attribute__((always_inline,used))
+void _dispatch_queue_limited_enqueue_f(dispatch_queue_limited_t dq, void *_Nullable context, dispatch_function_t work) {
+    dql_work_item_t item = dql_work_item_create(work, context, false);
+    _dispatch_queue_limited_maybe_invoke(dq, item);
+}
+
+static inline __attribute__((always_inline,used))
+void _dispatch_queue_limited_enqueue_await_f(dispatch_queue_limited_t dq, void *_Nullable context, dispatch_function_t work) {
     dql_work_item_t item = dql_work_item_create(work, context, true);
     _dispatch_queue_limited_maybe_invoke(dq, item);
 }
 
+void dispatch_queue_limited_enqueue_await_f(dispatch_queue_limited_t dq, void *_Nullable context, dispatch_function_t work) {
+    _dispatch_queue_limited_enqueue_await_f(dq, context, work);
+}
+
 void dispatch_queue_limited_enqueue_f(dispatch_queue_limited_t dq, void *_Nullable context, dispatch_function_t work) {
-    dql_work_item_t item = dql_work_item_create(work, context, false);
-    _dispatch_queue_limited_maybe_invoke(dq, item);
+    _dispatch_queue_limited_enqueue_f(dq, context, work);
 }
 
 /*
@@ -483,11 +493,11 @@ void dispatch_queue_limited_enqueue_f(dispatch_queue_limited_t dq, void *_Nullab
  * with a 'work' function (dql_block_invoke) to handle calling and releaseing them.
  */
 void dispatch_queue_limited_enqueue_await(dispatch_queue_limited_t dq, void (^op)(void)) {
-    dispatch_queue_limited_enqueue_await_f(dq, (void*)dispatch_block_create(0, op), dql_block_invoke);
+    _dispatch_queue_limited_enqueue_await_f(dq, (void*)dispatch_block_create(0, op), dql_block_invoke);
 }
 
 void dispatch_queue_limited_enqueue(dispatch_queue_limited_t dq, void (^op)(void)) {
-    dispatch_queue_limited_enqueue_f(dq, (void*)dispatch_block_create(0, op), dql_block_invoke);
+    _dispatch_queue_limited_enqueue_f(dq, (void*)dispatch_block_create(0, op), dql_block_invoke);
 }
 
 dispatch_queue_limited_t dispatch_queue_limited_create(uint32_t limit, dispatch_qos_class_t qos) {
