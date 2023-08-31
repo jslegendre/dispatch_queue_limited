@@ -450,7 +450,12 @@ void dispatch_queue_limited_dequeue_await(dispatch_queue_limited_t dq) {
 
 __attribute__((minsize))
 void dispatch_queue_limited_set_target_queue(dispatch_queue_limited_t dq, dispatch_queue_t queue) {
-    return dispatch_set_target_queue(dq->queue, queue);
+    dispatch_retain(queue);
+    dispatch_queue_t old_queue = NULL;
+    os_atomic_cmpxchgvw(&dq->queue, dq->queue, queue, &old_queue, seq_cst);
+    if (old_queue) {
+        dispatch_release(old_queue);
+    }
 }
 
 /*
