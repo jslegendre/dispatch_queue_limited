@@ -514,5 +514,7 @@ dispatch_queue_limited_t dispatch_queue_limited_create(uint32_t limit, dispatch_
     dq->limit = limit;
     dq->thread_count = 0;
     dq->await_count = 0;
+    dq->ref_cnt = 1;
+    dq->xref_cnt = 1;
     return dq;
 }
